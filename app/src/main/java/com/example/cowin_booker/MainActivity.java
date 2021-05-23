@@ -3,6 +3,7 @@ package com.example.cowin_booker;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -36,19 +37,24 @@ public class MainActivity extends AppCompatActivity {
         final Button startButton = (Button) findViewById(R.id.start_tracking);
         final Button stopButton = (Button) findViewById(R.id.stop_tracking);
         final Intent intent = new Intent(getBaseContext(), SessionFinderService.class);
-        ;
+        final Intent intent1 = new Intent(this, ForegroundService.class);
 
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startService(intent);
+
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+                    startForegroundService(intent1);
+                }else{
+                    startService(intent1);
+                }
             }
         });
 
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopService(intent);
+                stopService(intent1);
             }
         });
 
