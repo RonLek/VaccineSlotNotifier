@@ -1,0 +1,17 @@
+{
+  "districts": [
+    {
+      "district_id": -1,
+      "district_name": "Select your District"
+    },
+    {
+      "district_id": 309,
+      "district_name": "Kargil"
+    },
+    {
+      "district_id": 310,
+      "district_name": "Leh"
+    }
+  ],
+  "ttl": 24
+}

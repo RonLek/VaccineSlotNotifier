@@ -40,8 +40,6 @@ public class ForegroundService extends Service {
         Notification notification = new NotificationCompat.Builder(this,"ChannelId1").setContentText("COWIN-Booker is Running").setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent).build();
 
         startForeground(1,notification);
-        Intent intents = new Intent(getBaseContext(), SessionFinderService.class);
-        startService(intents);
         return START_STICKY;
     }
     //this function starts in the foreground service

@@ -1,0 +1,13 @@
+{
+  "districts": [
+    {
+      "district_id": -1,
+      "district_name": "Select your District"
+    },
+    {
+      "district_id": 108,
+      "district_name": "Chandigarh"
+    }
+  ],
+  "ttl": 24
+}

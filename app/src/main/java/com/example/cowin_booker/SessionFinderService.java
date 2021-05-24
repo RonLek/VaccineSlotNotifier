@@ -32,6 +32,8 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.content.Intent.getIntent;
+
 
 public class SessionFinderService extends Service {
     private Looper serviceLooper;
@@ -50,9 +52,6 @@ public class SessionFinderService extends Service {
 
         @Override
         public void handleMessage(Message msg) {
-
-            // Normally we would do some work here, like download a file.
-            // For our sample, we just sleep for 5 seconds.
             try {
                 while (true) {
                     i++;

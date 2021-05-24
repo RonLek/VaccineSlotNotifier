@@ -1,0 +1,13 @@
+{
+  "districts": [
+    {
+      "district_id": -1,
+      "district_name": "Select your District"
+    },
+    {
+      "district_id": 137,
+      "district_name": "Dadra and Nagar Haveli"
+    }
+  ],
+  "ttl": 24
+}
