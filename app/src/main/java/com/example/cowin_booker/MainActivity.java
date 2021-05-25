@@ -54,13 +54,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        final Intent intent1 = new Intent(this, ForegroundService.class);
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            startForegroundService(intent1);
-//        } else {
-//            startService(intent1);
-//        }
+
 
         stateSpinner = (Spinner) findViewById(R.id.spState);
         districtSpinner = (Spinner) findViewById(R.id.spDistrict);
@@ -115,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     urlString = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?district_id=" + districtId + "&date=" + selectedDate + "";
                     retrieveJSON(urlString);
+                    Intent intent = new Intent(MainActivity.this, SessionFinderService.class);
+                    intent.putExtra("urlString", urlString);
+                    startService(intent);
                 }
             }
         });
@@ -128,11 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, urlString,
                 response -> {
-
-                    Log.d("strrrrr", ">>" + response);
-
                     try {
-
                         JSONObject obj = new JSONObject(response);
                         centerList = new ArrayList<>();
                         JSONArray dataArray = obj.getJSONArray("states");
@@ -148,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
                             centerModel.setAvailableCapD2(dataObj.getInt("available_capacity_dose2"));
                             centerModel.setMinAgeLimit(dataObj.getInt("min_age_limit"));
                             centerModel.setVaccinationType(dataObj.getString("vaccine"));
+                            centerModel.setDate(dataObj.getString("date"));
 
                             centerList.add(centerModel);
                         }
@@ -272,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
     void districtObjectList(String selectedItem) {
         int stateId = getStateId(selectedItem);
         if (stateId == -1) {
-            Toast.makeText(MainActivity.this, "Someting went Wrong", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Something went Wrong", Toast.LENGTH_SHORT).show();
             return;
         }
 

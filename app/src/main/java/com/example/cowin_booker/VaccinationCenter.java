@@ -8,12 +8,13 @@ public class VaccinationCenter {
     public int availableCapD2;
     public int minAgeLimit;
     public String vaccinationType;
+    public String date;
 
     public VaccinationCenter() {
 
     }
 
-    public VaccinationCenter(String centerId, String centerName, int availableCap, int availableCapD1, int availableCapD2, int minAgeLimit, String vaccinationType) {
+    public VaccinationCenter(String centerId, String centerName, int availableCap, int availableCapD1, int availableCapD2, int minAgeLimit, String vaccinationType, String date) {
         this.centerId = centerId;
         this.centerName = centerName;
         this.availableCap = availableCap;
@@ -21,6 +22,7 @@ public class VaccinationCenter {
         this.availableCapD2 = availableCapD2;
         this.minAgeLimit = minAgeLimit;
         this.vaccinationType = vaccinationType;
+        this.date = date;
     }
 
     public String getCenterId() {
@@ -77,5 +79,13 @@ public class VaccinationCenter {
 
     public void setVaccinationType(String vaccinationType) {
         this.vaccinationType = vaccinationType;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }
