@@ -56,7 +56,6 @@ public class SessionFinderService extends Service {
                                     for (int i = 0; i < dataArray.length(); i++) {
                                         JSONObject dataObj = dataArray.getJSONObject(i);
                                         if(dataObj.getInt("available_capacity") > 0) {
-                                            startForegroundService();
                                             isFound = true;
                                             break;
                                         }
@@ -84,15 +83,6 @@ public class SessionFinderService extends Service {
                 // Restore interrupt status.
                 Thread.currentThread().interrupt();
             }
-        }
-    }
-
-    public void startForegroundService(){
-        final Intent intent1 = new Intent(this, ForegroundService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent1);
-        } else {
-            startService(intent1);
         }
     }
 

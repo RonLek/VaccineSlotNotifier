@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -53,8 +52,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
 
         stateSpinner = (Spinner) findViewById(R.id.spState);
         districtSpinner = (Spinner) findViewById(R.id.spDistrict);
@@ -109,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     urlString = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?district_id=" + districtId + "&date=" + selectedDate + "";
                     retrieveJSON(urlString);
-                    Intent intent = new Intent(MainActivity.this, SessionFinderService.class);
+                    Intent intent = new Intent(MainActivity.this, ForegroundService.class);
                     intent.putExtra("urlString", urlString);
                     startService(intent);
                 }
