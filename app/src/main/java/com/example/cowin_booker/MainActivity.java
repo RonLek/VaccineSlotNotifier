@@ -2,9 +2,14 @@ package com.example.cowin_booker;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -21,6 +26,8 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.cowin_booker.Models.District;
+import com.example.cowin_booker.Models.VaccinationCenter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,15 +44,16 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> stateList = new ArrayList<>();
     ArrayList<String> districtList = new ArrayList<>();
     ArrayList<District> districtObjList = new ArrayList<>();
-    private ArrayList<VaccinationCenter> centerList;
+    ArrayList<VaccinationCenter> centerList2 = new ArrayList<>();
     private Spinner stateSpinner, districtSpinner;
     private EditText datePicker;
     String selectedDate = "NULL";
     int districtId = -1;
     int year, month, date;
-    private Button searchButton;
+    private Button searchButton, stopButton;
     private static ProgressDialog mProgressDialog;
     String urlString;
+    String TAG = "MainAcivity";
 
 
     @Override
@@ -57,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         districtSpinner = (Spinner) findViewById(R.id.spDistrict);
         datePicker = (EditText) findViewById(R.id.datePicker);
         searchButton = (Button) findViewById(R.id.search);
+        stopButton = (Button) findViewById(R.id.stop);
 
         callAllStateFunctions();
         callDatePickerFunctions();
@@ -99,24 +108,68 @@ public class MainActivity extends AppCompatActivity {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (selectedDate.equals("NULL")) {
-                    Toast.makeText(MainActivity.this, "Please select Date", Toast.LENGTH_SHORT).show();
-                } else if (districtId == -1) {
+                if (districtId == -1) {
                     Toast.makeText(MainActivity.this, "Please select State and District", Toast.LENGTH_SHORT).show();
+                } else if (selectedDate.equals("NULL")) {
+                    Toast.makeText(MainActivity.this, "Please select Date", Toast.LENGTH_SHORT).show();
                 } else {
                     urlString = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?district_id=" + districtId + "&date=" + selectedDate + "";
-                    retrieveJSON(urlString);
-                    Intent intent = new Intent(MainActivity.this, ForegroundService.class);
-                    intent.putExtra("urlString", urlString);
-                    startService(intent);
+                    retrieveJSON(urlString, new CallBack() {
+                        @Override
+                        public void onSuccess(ArrayList<VaccinationCenter> centerList) {
+                            centerList2 = centerList;
+                        }
+
+                        @Override
+                        public void onFail(String msg) {
+                            Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    ComponentName componentName = new ComponentName(MainActivity.this, ForegroundService.class);
+                    PersistableBundle bundle = new PersistableBundle();
+                    bundle.putString("urlString", urlString);
+                    JobInfo info;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        info = new JobInfo.Builder(123, componentName)
+                                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                                .setPersisted(true)
+                                .setMinimumLatency(5000)
+                                .setExtras(bundle)
+                                .build();
+                    } else {
+                        info = new JobInfo.Builder(123, componentName)
+                                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                                .setPersisted(true)
+                                .setPeriodic(5000)
+                                .setExtras(bundle)
+                                .build();
+                    }
+
+                    JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+                    int resultCode = scheduler.schedule(info);
+                    if (resultCode == JobScheduler.RESULT_SUCCESS) {
+                        Log.d(TAG, "Job scheduled");
+                    } else {
+                        Log.d(TAG, "Job scheduling failed");
+                    }
                 }
+            }
+        });
+
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+                scheduler.cancel(123);
+                Log.d(TAG, "Job cancelled");
             }
         });
 
     }
 
     // retrieving json
-    private void retrieveJSON(String urlString) {
+    private void retrieveJSON(String urlString, MainActivity.CallBack callBack) {
 
         showSimpleProgressDialog(this, "Loading...", "Fetching Json", false);
 
@@ -124,8 +177,8 @@ public class MainActivity extends AppCompatActivity {
                 response -> {
                     try {
                         JSONObject obj = new JSONObject(response);
-                        centerList = new ArrayList<>();
-                        JSONArray dataArray = obj.getJSONArray("states");
+                        ArrayList<VaccinationCenter> centerList = new ArrayList<>();
+                        JSONArray dataArray = obj.getJSONArray("sessions");
 
                         for (int i = 0; i < dataArray.length(); i++) {
                             VaccinationCenter centerModel = new VaccinationCenter();
@@ -142,8 +195,11 @@ public class MainActivity extends AppCompatActivity {
 
                             centerList.add(centerModel);
                         }
+                        callBack.onSuccess(centerList);
+                        removeSimpleProgressDialog();
                     } catch (JSONException e) {
                         e.printStackTrace();
+                        callBack.onFail(e.getMessage());
                         removeSimpleProgressDialog();
                     }
                 },
@@ -346,6 +402,12 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stateList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         stateSpinner.setAdapter(adapter);
+    }
+
+    public interface CallBack {
+        void onSuccess(ArrayList<VaccinationCenter> centerList);
+
+        void onFail(String msg);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.example.cowin_booker;
+package com.example.cowin_booker.Models;
 
 public class VaccinationCenter {
     public String centerId;

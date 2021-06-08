@@ -4,59 +4,108 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
+import android.app.job.JobParameters;
+import android.app.job.JobService;
 import android.content.Intent;
 import android.os.Build;
-import android.os.IBinder;
+import android.util.Log;
+import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-public class ForegroundService extends Service {
-    //to show notification
-    public void createNotificationChannel(){
-        //we have to check if os is oreo or above
-         // then we have to create notification channel
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-            //this is how we create notification
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class ForegroundService extends JobService {
+
+    private static final String TAG = "ExampleJobService";
+    private boolean jobCancelled = false;
+    String urlString;
+
+    @Override
+    public boolean onStartJob(JobParameters params) {
+        Log.d(TAG, "Job started");
+        urlString = params.getExtras().getString("urlString");
+        doBackgroundWork(params);
+        return true;
+    }
+
+    private void doBackgroundWork(JobParameters params) {
+        if (jobCancelled) {
+            return;
+        }
+
+        createNotificationChannel();
+        Intent intent1 = new Intent(ForegroundService.this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent1, 0);
+        retrieveJSON(urlString, new CallBack2() {
+            @Override
+            public void onSuccess(String str) {
+                Notification notification = new NotificationCompat.Builder(ForegroundService.this, "ChannelId1")
+                        .setContentText("Available doses : " + str).setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentIntent(pendingIntent).build();
+                startForeground(1,notification);
+            }
+
+            @Override
+            public void onFail(String msg) {
+
+            }
+        });
+
+    }
+
+    public void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(
-                    "ChannelId1","Foreground notification", NotificationManager.IMPORTANCE_DEFAULT
+                    "ChannelId1", "Foreground notification", NotificationManager.IMPORTANCE_DEFAULT
             );
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(notificationChannel);
         }
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    private void retrieveJSON(String urlString, ForegroundService.CallBack2 callBack2) {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, urlString,
+                response -> {
+                    try {
+                        JSONObject obj = new JSONObject(response);
+                        JSONArray dataArray = obj.getJSONArray("sessions");
+                        int doses = 0;
+                        for (int i = 0; i < dataArray.length(); i++) {
+                            JSONObject dataObj = dataArray.getJSONObject(i);
+                            doses += Integer.parseInt(dataObj.getString("available_capacity"));
+                        }
+                        callBack2.onSuccess(doses + "");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        callBack2.onFail(e.getMessage());
+                    }
+                },
+                error -> {
+                    Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                });
 
-        createNotificationChannel();
-
-        Intent intent1 = new Intent(this,MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,0,intent1,0);
-
-        Notification notification = new NotificationCompat.Builder(this,"ChannelId1").setContentText("COWIN-Booker is Running").setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent).build();
-
-        startForeground(1,notification);
-        String urlString = intent.getStringExtra("urlString");
-        Intent intents = new Intent(getBaseContext(), SessionFinderService.class);
-        intents.putExtra("urlString", urlString);
-        startService(intents);
-
-        return START_STICKY;
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
     }
-    //this function starts in the foreground service
 
-    @Nullable
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    public boolean onStopJob(JobParameters jobParameters) {
+        Log.d(TAG, "Job cancelled before completion");
+        jobCancelled = true;
+        return true;
     }
 
-    @Override
-    public void onDestroy() {
-        stopForeground(true);
-        stopSelf();
-        super.onDestroy();
+    public interface CallBack2 {
+        void onSuccess(String str);
+
+        void onFail(String msg);
     }
 }
