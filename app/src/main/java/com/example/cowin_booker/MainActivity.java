@@ -6,6 +6,7 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -21,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabsIntent;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -39,6 +41,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+
+
 public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> stateList = new ArrayList<>();
@@ -47,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<VaccinationCenter> centerList2 = new ArrayList<>();
     private Spinner stateSpinner, districtSpinner;
     private EditText datePicker;
+    private Button bookButton;
     String selectedDate = "NULL";
     int districtId = -1;
     int year, month, date;
@@ -60,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        bookButton = (Button) findViewById(R.id.bookButton);
         stateSpinner = (Spinner) findViewById(R.id.spState);
         districtSpinner = (Spinner) findViewById(R.id.spDistrict);
         datePicker = (EditText) findViewById(R.id.datePicker);
@@ -69,6 +74,20 @@ public class MainActivity extends AppCompatActivity {
 
         callAllStateFunctions();
         callDatePickerFunctions();
+
+
+
+        bookButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //chrome customs tabs
+                String url ="https://selfregistration.cowin.gov.in/";
+                CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+
+                CustomTabsIntent customTabsIntent = builder.build();
+                customTabsIntent.launchUrl(MainActivity.this, Uri.parse(url));
+            }
+        });
 
         stateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -171,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
     // retrieving json
     private void retrieveJSON(String urlString, MainActivity.CallBack callBack) {
 
-        showSimpleProgressDialog(this, "Loading...", "Fetching Json", false);
+        showSimpleProgressDialog(this, "Loading...", "Starting Service", false);
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, urlString,
                 response -> {
