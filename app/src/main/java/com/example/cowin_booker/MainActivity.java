@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.browser.customtabs.CustomTabsIntent;
 
@@ -45,7 +46,7 @@ import spencerstudios.com.bungeelib.Bungee;
 
 
 public class MainActivity extends AppCompatActivity {
-    
+    int flag = 0;
     ArrayList<String> stateList = new ArrayList<>();
     ArrayList<String> districtList = new ArrayList<>();
     ArrayList<District> districtObjList = new ArrayList<>();
@@ -56,10 +57,11 @@ public class MainActivity extends AppCompatActivity {
     String selectedDate = "NULL";
     int districtId = -1;
     int year, month, date;
-    private Button searchButton, stopButton;
+    private Button searchButton;
     private static ProgressDialog mProgressDialog;
     String urlString;
     String TAG = "MainAcivity";
+
 
 
     @Override
@@ -71,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
         districtSpinner = (Spinner) findViewById(R.id.spDistrict);
         datePicker = (EditText) findViewById(R.id.datePicker);
         searchButton = (Button) findViewById(R.id.search);
-        stopButton = (Button) findViewById(R.id.stop);
 
         callAllStateFunctions();
         callDatePickerFunctions();
@@ -129,63 +130,70 @@ public class MainActivity extends AppCompatActivity {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (districtId == -1) {
-                    Toast.makeText(MainActivity.this, "Please select State and District", Toast.LENGTH_SHORT).show();
-                } else if (selectedDate.equals("NULL")) {
-                    Toast.makeText(MainActivity.this, "Please select Date", Toast.LENGTH_SHORT).show();
-                } else {
-                    urlString = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?district_id=" + districtId + "&date=" + selectedDate + "";
-                    retrieveJSON(urlString, new CallBack() {
-                        @Override
-                        public void onSuccess(ArrayList<VaccinationCenter> centerList) {
-                            centerList2 = centerList;
-                        }
+                if(flag==0) {
 
-                        @Override
-                        public void onFail(String msg) {
-                            Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    if (districtId == -1) {
 
-                    ComponentName componentName = new ComponentName(MainActivity.this, ForegroundService.class);
-                    PersistableBundle bundle = new PersistableBundle();
-                    bundle.putString("urlString", urlString);
-                    JobInfo info;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        info = new JobInfo.Builder(123, componentName)
-                                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                                .setPersisted(true)
-                                .setMinimumLatency(5000)
-                                .setExtras(bundle)
-                                .build();
+                        Toast.makeText(MainActivity.this, "Please select State and District", Toast.LENGTH_SHORT).show();
+                    } else if (selectedDate.equals("NULL")) {
+                        Toast.makeText(MainActivity.this, "Please select Date", Toast.LENGTH_SHORT).show();
                     } else {
-                        info = new JobInfo.Builder(123, componentName)
-                                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                                .setPersisted(true)
-                                .setPeriodic(5000)
-                                .setExtras(bundle)
-                                .build();
-                    }
+                        flag=1;
+                        searchButton.setText("Stop");
+                        searchButton.setBackgroundResource(R.drawable.red);
+                        urlString = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?district_id=" + districtId + "&date=" + selectedDate + "";
+                        retrieveJSON(urlString, new CallBack() {
+                            @Override
+                            public void onSuccess(ArrayList<VaccinationCenter> centerList) {
+                                centerList2 = centerList;
+                            }
 
+                            @Override
+                            public void onFail(String msg) {
+                                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                        ComponentName componentName = new ComponentName(MainActivity.this, ForegroundService.class);
+                        PersistableBundle bundle = new PersistableBundle();
+                        bundle.putString("urlString", urlString);
+                        JobInfo info;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            info = new JobInfo.Builder(123, componentName)
+                                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                                    .setPersisted(true)
+                                    .setMinimumLatency(5000)
+                                    .setExtras(bundle)
+                                    .build();
+                        } else {
+                            info = new JobInfo.Builder(123, componentName)
+                                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                                    .setPersisted(true)
+                                    .setPeriodic(5000)
+                                    .setExtras(bundle)
+                                    .build();
+                        }
+
+                        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+                        int resultCode = scheduler.schedule(info);
+                        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+                            Log.d(TAG, "Job scheduled");
+                        } else {
+                            Log.d(TAG, "Job scheduling failed");
+                        }
+                    }
+                }else{
+                    flag = 0;
+                    searchButton.setText("Start");
+                    searchButton.setBackgroundResource(R.drawable.green);
                     JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-                    int resultCode = scheduler.schedule(info);
-                    if (resultCode == JobScheduler.RESULT_SUCCESS) {
-                        Log.d(TAG, "Job scheduled");
-                    } else {
-                        Log.d(TAG, "Job scheduling failed");
-                    }
+                    scheduler.cancel(123);
+                    Log.d(TAG, "Job cancelled");
                 }
             }
         });
 
-        stopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-                scheduler.cancel(123);
-                Log.d(TAG, "Job cancelled");
-            }
-        });
+
 
     }
 

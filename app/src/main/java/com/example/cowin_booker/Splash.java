@@ -25,6 +25,6 @@ public class Splash extends AppCompatActivity {
                 finish();
                 Bungee.zoom(Splash.this);
             }
-        },1500);
+        },2000);
     }
 }
