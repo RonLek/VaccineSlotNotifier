@@ -41,10 +41,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import spencerstudios.com.bungeelib.Bungee;
 
 
 public class MainActivity extends AppCompatActivity {
-
+    
     ArrayList<String> stateList = new ArrayList<>();
     ArrayList<String> districtList = new ArrayList<>();
     ArrayList<District> districtObjList = new ArrayList<>();
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
                 CustomTabsIntent customTabsIntent = builder.build();
                 customTabsIntent.launchUrl(MainActivity.this, Uri.parse(url));
+                Bungee.slideLeft(MainActivity.this);
             }
         });
 
