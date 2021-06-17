@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:toggle="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:toggle="http://schemas.android.com/apk/res-auto"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/heading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_margin="30dp"
-        android:text="COWIN Vaccine Notifier"
+        android:text="@string/cowin_vaccine_notifier"
         android:textSize="20sp"
         android:textStyle="bold" />
 
@@ -20,7 +20,6 @@
         android:id="@+id/district"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/heading"
         android:layout_margin="20dp"
         android:orientation="vertical">
 
@@ -30,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
-            android:text="State And District" />
+            android:text="@string/state_and_district" />
 
         <Spinner
             android:id="@+id/spState"
@@ -46,46 +45,46 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp" />
 
-        <EditText
-            android:id="@+id/datePicker"
-            android:layout_width="match_parent"
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/search"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:cursorVisible="false"
-            android:focusable="false"
-            android:focusableInTouchMode="true"
-            android:hint="Select Date" />
+            android:layout_weight="1"
+            android:layout_margin="20dp"
+            android:background="@drawable/green"
+            android:text="@string/start"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/stop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="20dp"
+            android:background="@drawable/red"
+            android:text="@string/stop"
+            android:textSize="15sp" />
 
     </LinearLayout>
 
 
-        <Button
-            android:id="@+id/search"
-            android:layout_below="@id/district"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="30dp"
-            android:layout_marginHorizontal="45dp"
-            android:background="@drawable/green"
-            android:textSize="15sp"
-            android:text="Start"
-            />
 
+    <Button
+        android:id="@+id/bookButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="45dp"
+        android:layout_marginTop="15dp"
+        android:background="@drawable/round"
+        android:text="@string/book_vaccine"
+        android:textSize="15sp" />
 
-<Button
-    android:textSize="15sp"
-    android:layout_marginTop="15dp"
-    android:layout_below="@+id/search"
-    android:background="@drawable/round"
-    android:id="@+id/bookButton"
-    android:layout_marginHorizontal="45dp"
-    android:layout_centerHorizontal="true"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Book Vaccine"
-
-    />
-
-
-
-
-</RelativeLayout>
+</LinearLayout>

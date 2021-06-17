@@ -4,8 +4,10 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
@@ -27,6 +29,7 @@ public class ForegroundService extends JobService {
     private static final String TAG = "ExampleJobService";
     private boolean jobCancelled = false;
     String urlString;
+    private static ProgressDialog mProgressDialog;
 
     @Override
     public boolean onStartJob(JobParameters params) {
@@ -40,7 +43,6 @@ public class ForegroundService extends JobService {
         if (jobCancelled) {
             return;
         }
-
         createNotificationChannel();
         Intent intent1 = new Intent(ForegroundService.this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent1, 0);
@@ -50,12 +52,14 @@ public class ForegroundService extends JobService {
                 Notification notification = new NotificationCompat.Builder(ForegroundService.this, "ChannelId1")
                         .setContentText("Available doses : " + str).setSmallIcon(R.mipmap.ic_launcher)
                         .setContentIntent(pendingIntent).build();
-                startForeground(1,notification);
+                startForeground(1, notification);
+//                removeSimpleProgressDialog();
             }
 
             @Override
             public void onFail(String msg) {
 
+//                removeSimpleProgressDialog();
             }
         });
 
@@ -72,6 +76,7 @@ public class ForegroundService extends JobService {
     }
 
     private void retrieveJSON(String urlString, ForegroundService.CallBack2 callBack2) {
+        showSimpleProgressDialog(ForegroundService.this, "Loading...", "Starting Service", false);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, urlString,
                 response -> {
                     try {
@@ -83,13 +88,16 @@ public class ForegroundService extends JobService {
                             doses += Integer.parseInt(dataObj.getString("available_capacity"));
                         }
                         callBack2.onSuccess(doses + "");
+                        removeSimpleProgressDialog();
                     } catch (JSONException e) {
                         e.printStackTrace();
                         callBack2.onFail(e.getMessage());
+                        removeSimpleProgressDialog();
                     }
                 },
                 error -> {
                     Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                    removeSimpleProgressDialog();
                 });
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
@@ -101,6 +109,36 @@ public class ForegroundService extends JobService {
         Log.d(TAG, "Job cancelled before completion");
         jobCancelled = true;
         return true;
+    }
+
+    public static void removeSimpleProgressDialog() {
+        try {
+            if (mProgressDialog != null) {
+                if (mProgressDialog.isShowing()) {
+                    mProgressDialog.dismiss();
+                    mProgressDialog = null;
+                }
+            }
+        } catch (Exception ie) {
+            ie.printStackTrace();
+        }
+    }
+
+    public static void showSimpleProgressDialog(Context context, String title,
+                                                String msg, boolean isCancelable) {
+        try {
+            if (mProgressDialog == null) {
+                mProgressDialog = ProgressDialog.show(context, title, msg);
+                mProgressDialog.setCancelable(isCancelable);
+            }
+
+            if (!mProgressDialog.isShowing()) {
+                mProgressDialog.show();
+            }
+
+        } catch (Exception ie) {
+            ie.printStackTrace();
+        }
     }
 
     public interface CallBack2 {

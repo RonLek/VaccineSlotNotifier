@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">COWIN-Booker</string>
+    <string name="cowin_vaccine_notifier">COWIN Vaccine Notifier</string>
+    <string name="start">Start</string>
+    <string name="book_vaccine">Book Vaccine</string>
+    <string name="state_and_district">State And District</string>
+    <string name="stop">Stop</string>
 </resources>
